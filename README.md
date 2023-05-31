@@ -1,5 +1,96 @@
 # Credit-Card-Fraud-Detection-in-Data-Science
 
+**Python **
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Load the dataset
+data = pd.read_csv('credit_card_data.csv')
+
+# Split the dataset into features and labels
+X = data.drop('Class', axis=1)
+y = data['Class']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Feature scaling
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Train a logistic regression model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+In the above code:
+
+The dataset is loaded using pd.read_csv() assuming the file is named credit_card_data.csv.
+The features (X) are extracted by dropping the 'Class' column, which represents the labels.
+The data is split into training and testing sets using train_test_split() from sklearn.model_selection.
+Feature scaling is performed using StandardScaler() from sklearn.preprocessing.
+A logistic regression model is trained using LogisticRegression() from sklearn.linear_model.
+The trained model is used to make predictions on the test set.
+The performance of the model is evaluated using confusion_matrix() and classification_report() from sklearn.metrics.
+
+**R Programming **
+
+library(tidyverse)
+library(caret)
+library(glmnet)
+
+# Load the dataset
+data <- read.csv('credit_card_data.csv')
+
+# Split the dataset into features and labels
+X <- data[, !(names(data) %in% c('Class'))]
+y <- data$Class
+
+# Split the data into training and testing sets
+set.seed(42)
+trainIndex <- createDataPartition(y, p=0.8, list=FALSE)
+X_train <- X[trainIndex, ]
+y_train <- y[trainIndex]
+X_test <- X[-trainIndex, ]
+y_test <- y[-trainIndex]
+
+# Feature scaling
+preproc <- preProcess(X_train, method=c("center", "scale"))
+X_train <- predict(preproc, X_train)
+X_test <- predict(preproc, X_test)
+
+# Train a logistic regression model
+model <- glmnet(X_train, y_train, family="binomial")
+
+# Make predictions on the test set
+y_pred <- predict(model, newx=X_test, type="response")
+y_pred <- ifelse(y_pred > 0.5, 1, 0)
+
+# Evaluate the model
+confusionMatrix(data=as.factor(y_pred), reference=as.factor(y_test))
+
+In both implementations:
+
+The dataset is loaded using pd.read_csv() in Python and read.csv() in R assuming the file is named credit_card_data.csv.
+The features (X) are extracted by excluding the 'Class' column, which represents the labels.
+The data is split into training and testing sets using train_test_split() in Python and createDataPartition() in R.
+Feature scaling is performed using StandardScaler() in Python and preProcess() in R.
+A logistic regression model is trained using LogisticRegression() in Python and glmnet() in R.
+The trained model is used to make predictions on the test set.
+The performance of the model is evaluated using confusion_matrix() and classification_report() in Python and confusionMatrix() in R.
+
 # Credit Card Fraud Detection
 
 This project aims to develop a machine learning model to detect credit card fraud using data science techniques.
