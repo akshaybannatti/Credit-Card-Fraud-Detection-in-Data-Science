@@ -35,15 +35,6 @@ print(confusion_matrix(y_test, y_pred))
 print("\nClassification Report:")
 print(classification_report(y_test, y_pred))
 
-In the above code:
-
-The dataset is loaded using pd.read_csv() assuming the file is named credit_card_data.csv.
-The features (X) are extracted by dropping the 'Class' column, which represents the labels.
-The data is split into training and testing sets using train_test_split() from sklearn.model_selection.
-Feature scaling is performed using StandardScaler() from sklearn.preprocessing.
-A logistic regression model is trained using LogisticRegression() from sklearn.linear_model.
-The trained model is used to make predictions on the test set.
-The performance of the model is evaluated using confusion_matrix() and classification_report() from sklearn.metrics.
 
 **R Programming **
 
@@ -94,10 +85,6 @@ The performance of the model is evaluated using confusion_matrix() and classific
 # Credit Card Fraud Detection
 
 This project aims to develop a machine learning model to detect credit card fraud using data science techniques.
-
-## Dataset
-
-The dataset used for this project is the [Credit Card Fraud Detection dataset](https://www.kaggle.com/mlg-ulb/creditcardfraud) from Kaggle. It contains transactions made by credit cards in September 2013 by European cardholders. The dataset is highly imbalanced, with only 0.17% of the transactions being fraudulent.
 
 ## Objective
 
