@@ -1,0 +1,129 @@
+### File: src/data_preprocessing.py
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
+def load_data(file_path):
+    """Load credit card transaction data from CSV."""
+    return pd.read_csv(file_path)
+
+def preprocess_data(df):
+    """Clean and preprocess data."""
+    # Scaling features except 'Class'
+    features = df.drop('Class', axis=1)
+    scaler = StandardScaler()
+    features_scaled = scaler.fit_transform(features)
+    target = df['Class']
+    return features_scaled, target
+
+### File: src/model.py
+import pickle
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split, GridSearchCV
+from data_preprocessing import load_data, preprocess_data
+
+
+def train_model(data_path, model_type='logistic'): 
+    """Train and save a classification model with hyperparameter tuning."""
+    df = load_data(data_path)
+    X, y = preprocess_data(df)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    if model_type == 'logistic':
+        model = LogisticRegression()
+        param_grid = {'C': [0.01, 0.1, 1, 10], 'solver': ['liblinear']}
+    elif model_type == 'random_forest':
+        model = RandomForestClassifier()
+        param_grid = {'n_estimators': [50, 100, 200], 'max_depth': [5, 10, 20]}
+    else:
+        raise ValueError("Unsupported model type")
+
+    grid_search = GridSearchCV(model, param_grid, cv=5, scoring='f1')
+    grid_search.fit(X_train, y_train)
+    best_model = grid_search.best_estimator_
+
+    predictions = best_model.predict(X_test)
+    
+    print("Confusion Matrix:\n", confusion_matrix(y_test, predictions))
+    print("Classification Report:\n", classification_report(y_test, predictions))
+    print("Best Parameters: ", grid_search.best_params_)
+
+    # Save the best model
+    with open(f"{model_type}_fraud_model.pkl", 'wb') as f:
+        pickle.dump(best_model, f)
+
+### File: src/evaluate.py
+import pickle
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_auc_score, roc_curve, confusion_matrix, classification_report
+from data_preprocessing import load_data, preprocess_data
+
+
+def evaluate_model(model_path, data_path):
+    """Load model and evaluate it on test data with visualizations."""
+    df = load_data(data_path)
+    X, y = preprocess_data(df)
+
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
+
+    predictions = model.predict(X)
+    auc_score = roc_auc_score(y, predictions)
+    print(f"AUC Score: {auc_score}")
+    print("Confusion Matrix:\n", confusion_matrix(y, predictions))
+    print("Classification Report:\n", classification_report(y, predictions))
+
+    fpr, tpr, _ = roc_curve(y, predictions)
+    plt.figure()
+    plt.plot(fpr, tpr, label=f'ROC curve (area = {auc_score:.2f})')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic')
+    plt.legend(loc='lower right')
+    plt.show()
+
+### File: src/predict.py
+import pickle
+from sklearn.preprocessing import StandardScaler
+
+
+def predict_transaction(model_path, transaction_data):
+    """Predict if a transaction is fraudulent."""
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
+
+    scaler = StandardScaler()
+    transaction_data_scaled = scaler.fit_transform([transaction_data])
+    prediction = model.predict(transaction_data_scaled)
+    return 'Fraud' if prediction[0] == 1 else 'Legitimate'
+
+### File: README.md
+# Credit Card Fraud Detection
+
+This project demonstrates how to use machine learning to detect fraudulent transactions.
+
+## Data
+- Dataset: [Kaggle Credit Card Fraud Dataset](https://www.kaggle.com/mlg-ulb/creditcardfraud)
+
+## Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+## Usage
+1. Train a model:
+   ```bash
+   python src/model.py
+   ```
+2. Evaluate the model:
+   ```bash
+   python src/evaluate.py
+   ```
+3. Predict transactions:
+   ```python
+   from src.predict import predict_transaction
+   sample_transaction_data = [0.0, -0.5, 1.2, ...]  # Replace with appropriate values
+   result = predict_transaction('logistic_fraud_model.pkl', sample_transaction_data)
+   print(result)
+   ```
